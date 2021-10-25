@@ -462,6 +462,6 @@ class TraceSet:
         tab1 = Panel(child=tab1_layout, title="Spectrum Data")
         tab2 = Panel(child=tab2_layout, title="FOI Tool")
         tabs = Tabs(tabs=[ tab1, tab2 ])
-        output_file(f'{self.start_frq} - {self.stop_frq}.html', title='EME Analysis Tool', mode='inline')
-        
+        file = output_file(f'{self.start_frq} - {self.stop_frq}.html', title='EME Analysis Tool', mode='inline')
         show(tabs)
+        return file
