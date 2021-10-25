@@ -6,7 +6,7 @@ from bokeh.events import SelectionGeometry, Tap, DoubleTap
 from bokeh.models import CustomJS, Label, NumberFormatter, LabelSet, ColorBar, LinearColorMapper, EqHistColorMapper, CategoricalColorMapper, Range1d, ColumnDataSource, BasicTickFormatter, Band, BoxEditTool, DataTable, TableColumn, HoverTool, BoxSelectTool, LabelSet, Rect, CDSView, GroupFilter, DatetimeTickFormatter, Quad, Circle
 from bokeh.palettes import Spectral3
 from bokeh.models.widgets import Panel, Tabs, Button, TextInput, Div
-from bokeh.plotting import figure, output_file, show
+from bokeh.plotting import figure, output_file, show, save
 from bokeh.layouts import row, column, layout, gridplot
 from bokeh.transform import linear_cmap
 from bokeh.models.filters import CustomJSFilter
@@ -462,6 +462,5 @@ class TraceSet:
         tab1 = Panel(child=tab1_layout, title="Spectrum Data")
         tab2 = Panel(child=tab2_layout, title="FOI Tool")
         tabs = Tabs(tabs=[ tab1, tab2 ])
-        file = output_file(f'{self.start_frq} - {self.stop_frq}.html', title='EME Analysis Tool', mode='inline')
-        show(tabs)
+        file = save(tabs)
         return file
