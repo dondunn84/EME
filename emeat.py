@@ -11,4 +11,11 @@ if csv_upload:
     df = pd.read_csv(csv_upload)
     df = cmcsv(df)
     new_traceset = msn_chart2.TraceSet(df, 100)
-    new_traceset.page()
+    page = new_traceset.page()
+    with open(page, "rb") as file:
+         btn = st.download_button(
+                 label="Download html",
+                 data=file,
+                 file_name="test.html",
+                 mime="text/html"
+         )
