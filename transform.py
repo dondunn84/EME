@@ -62,7 +62,6 @@ def mlog(file):
         line_string = ""
         for line in lines:
             lines_string = line_string + str(line)
-        print(line_string)
         xml_dict = xmltodict.parse(line_string)
         json_data = json.dumps(xml_dict)
         json_data = json.loads(json_data)
