@@ -59,10 +59,10 @@ def mlog(file):
         #f.truncate()
         lines.pop(3)
         lines.append("</RFLog>")
-        with open('mlog.json', 'w+') as g:
-            g.writelines(lines)
-            xml_dict = xmltodict.parse(g.read())
-            g.close()
+        line_string = None
+        for line in lines:
+            line_string + line + '/n'
+        xml_dict = xmltodict.parse(line_string)
         json_data = json.dumps(xml_dict)
         json_data = json.loads(json_data)
         df = pd.json_normalize(json_data, record_path =['RFLog', 'RFSample'])
