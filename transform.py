@@ -59,7 +59,7 @@ def mlog(file):
         #f.truncate()
         lines.pop(3)
         lines.append("</RFLog>")
-        line_string = None
+        line_string = ""
         for line in lines:
             line_string + line + '/n'
         xml_dict = xmltodict.parse(line_string)
