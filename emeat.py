@@ -4,9 +4,9 @@ from transform import crfs_msn_csv as cmcsv
 from transform import mlog
 import pandas as pd
 import bokeh.io.output
-import os
+#import os
 
-path = os.path.dirname(__file__)
+#path = os.path.dirname(__file__)
 
 st.title("EME Analysis Tool, HTML Creator")
 
@@ -38,12 +38,5 @@ elif file_type == "MANCAT MLog":
                      label="Download html",
                      data=file,
                      file_name="test.html",
-                     mime="text/html"
-             )
-with open(path+'/new.txt', "r") as file:
-             btn = st.download_button(
-                     label="Download html",
-                     data=file,
-                     file_name="test.txt",
                      mime="text/html"
              )
