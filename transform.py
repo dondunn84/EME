@@ -58,9 +58,10 @@ def mlog(file):
             line_string = ""
             for line in lines:
                 line_string = line_string + str(line)
-            print(line_string[0:40])
-            
-            xml_dict = xmltodict.parse(line_string, False)
+            with open('new.txt', 'w+') as new:
+                new.write(line_string)
+                new.close
+            xml_dict = xmltodict.parse(line_string)
             json_data = json.dumps(xml_dict)
             json_data = json.loads(json_data)
             df = pd.json_normalize(json_data, record_path =['RFLog', 'RFSample'])
