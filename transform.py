@@ -51,35 +51,30 @@ def dons_app(df):
     return df
 
 def mlog(file):
-    
-        lines = file.readlines()
-        # move file pointer to the beginning of a file
-        #f.seek(0)
-        # truncate the file
-        #f.truncate()
-        lines.pop(3)
-        lines.append("</RFLog>")
-        line_string = ""
-        for line in lines:
-            lines_string = line_string + str(line)
-        xml_dict = xmltodict.parse(line_string)
-        json_data = json.dumps(xml_dict)
-        json_data = json.loads(json_data)
-        df = pd.json_normalize(json_data, record_path =['RFLog', 'RFSample'])
-        df2 = pd.json_normalize(json_data)
-        df['stop_frq'] = df2['RFLog.FreqRng.Max.@FreqHZ'][0]
-        df['start_frq'] = df2['RFLog.FreqRng.Min.@FreqHZ'][0]
-        df.rename(columns={'@TSize': 'num_datapoints', '#text': 'lvls', 'DTSpan.@STime': 'start_time', 'DTSpan.@ETime': 'stop_time'}, inplace=True)
-        df['lvls'] = df['lvls'].str.split(',')
-        for row in df.itertuples():
-            i = 0
-            for lvl in row.lvls:
-                row.lvls[i] = float(lvl)
-                i = i + 1
-        #df['start_time'] = pd.to_datetime(df['start_time'], unit='ms', utc=True)
-        df['lvls'] = df['lvls'].apply(dbm_tenth_dbuv)
-        df['timestamp'] = pd.to_datetime(df['start_time'], format="%Y%m%d%H%M%S.%f")
-        df = df.drop(columns=['start_time', 'stop_time', 'num_datapoints'])
-        df['start_frq'] = pd.to_numeric(df['start_frq'],errors='coerce')
-        df['stop_frq'] = pd.to_numeric(df['stop_frq'],errors='coerce')
-        return df
+            lines = file.readlines()
+            lines.pop(3)
+            lines.append("</RFLog>")
+            line_string = ""
+            for line in lines:
+                line_string = line_string + str(line)
+            xml_dict = xmltodict.parse(line_string)
+            json_data = json.dumps(xml_dict)
+            json_data = json.loads(json_data)
+            df = pd.json_normalize(json_data, record_path =['RFLog', 'RFSample'])
+            df2 = pd.json_normalize(json_data)
+            df['stop_frq'] = df2['RFLog.FreqRng.Max.@FreqHZ'][0]
+            df['start_frq'] = df2['RFLog.FreqRng.Min.@FreqHZ'][0]
+            df.rename(columns={'@TSize': 'num_datapoints', '#text': 'lvls', 'DTSpan.@STime': 'start_time', 'DTSpan.@ETime': 'stop_time'}, inplace=True)
+            df['lvls'] = df['lvls'].str.split(',')
+            for row in df.itertuples():
+                i = 0
+                for lvl in row.lvls:
+                    row.lvls[i] = float(lvl)
+                    i = i + 1
+            #df['start_time'] = pd.to_datetime(df['start_time'], unit='ms', utc=True)
+            df['lvls'] = df['lvls'].apply(dbm_tenth_dbuv)
+            df['timestamp'] = pd.to_datetime(df['start_time'], format="%Y%m%d%H%M%S.%f")
+            df = df.drop(columns=['start_time', 'stop_time', 'num_datapoints'])
+            df['start_frq'] = pd.to_numeric(df['start_frq'],errors='coerce')
+            df['stop_frq'] = pd.to_numeric(df['stop_frq'],errors='coerce')
+            return df
