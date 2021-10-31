@@ -4,6 +4,9 @@ from transform import crfs_msn_csv as cmcsv
 from transform import mlog
 import pandas as pd
 import bokeh.io.output
+import os
+
+path = os.path.dirname(__file__)
 
 st.title("EME Analysis Tool, HTML Creator")
 
@@ -27,7 +30,7 @@ if file_type == "Mission CSV":
 elif file_type == "MANCAT MLog":
     file_upload = st.file_uploader("Use MANCAT MLog")
     if file_upload:
-        df = mlog(file_upload)
+        df = mlog(my_file = path+f'/{file_upload.name}')
         new_traceset = msn_chart2.TraceSet(df, 100)
         page = new_traceset.page()
         with open(page, "rb") as file:
