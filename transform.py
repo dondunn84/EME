@@ -61,7 +61,7 @@ def mlog(file):
         lines.append("</RFLog>")
         line_string = ""
         for line in lines:
-            line_string + str(line) + '/n'
+            lines_string = line_string + str(line)
         print(line_string)
         xml_dict = xmltodict.parse(line_string)
         json_data = json.dumps(xml_dict)
