@@ -13,6 +13,13 @@ from bokeh.models.filters import CustomJSFilter
 from bokeh.io import curdoc
 import sig_detect as sd
 
+def dbuv_dbm(lvls):
+    nlvls = []
+    for lvl in lvls:
+        lvl = lvl/10 - 107
+        nlvls.append(lvl)
+    return nlvls
+
 
 class TraceSet:
     
@@ -22,19 +29,19 @@ class TraceSet:
         self.lvls = np.array(df['lvls'].tolist())
         self.start_frq = df['start_frq'][0]
         self.stop_frq = df['stop_frq'][0]
-        self.step_frq = (self.stop_frq - self.start_frq)/self.num_datapoints
+        self.step_frq = np.int32((self.stop_frq - self.start_frq)/self.num_datapoints)
         self.start_time = str(df['timestamp'].min().round(freq = 'S'))[:-6]
         self.stop_time = str(df['timestamp'].max().round(freq = 'S'))[:-6]
         self.timestamps = np.array(df['timestamp'].tolist())
         self.offs = np.array(mk_offs(self.start_frq, self.step_frq, self.num_datapoints, self.num_traces))
-        self.maximum = np.max(self.lvls, axis=0)
-        self.minimum = np.min(self.lvls, axis=0)
-        self.mean = np.mean(self.lvls, axis=0)
+        self.maximum = np.max(dbuv_dbm(self.lvls), axis=0)
+        self.minimum = np.min(dbuv_dbm(self.lvls), axis=0)
+        self.mean = np.mean(dbuv_dbm(self.lvls), axis=0)
         self.x_min = self.offs.min()/1000000
         self.x_max = self.offs.max()/1000000
         self.xrange = Range1d((self.x_min), (self.x_max), bounds="auto")
-        self.y_min = self.lvls.min()
-        self.y_max = self.lvls.max()
+        self.y_min = (self.lvls.min()/10) - 107
+        self.y_max = (self.lvls.max()/10) - 107
         self.yrange = Range1d(self.y_min, self.y_max+10, bounds="auto")
         self.z_min=df['timestamp'].min()
         self.z_max=df['timestamp'].max()
@@ -45,7 +52,7 @@ class TraceSet:
             shape=self.num_datapoints,
             fill_value=self.y_min,
             dtype=np.int
-        ), top=self.lvls[0], left=self.offs[0]/1000000, right=(self.offs[0]/1000000 + self.step_frq/1000000)))
+        ), top=self.lvls[0]/10 - 107, left=self.offs[0]/1000000, right=(self.offs[0]/1000000 + self.step_frq/1000000)))
         self.sweep_cds = ColumnDataSource(dict(timestamp=[self.timestamps[0]], index=[0], start_index=[0], stop_index=[0], last_timestamp=[self.timestamps[0]], intervals=[None]))
         self.sweep_timestamp = self.sweep_cds.data['timestamp'][0]
         self.sweep_index = self.sweep_cds.data['index'][0]
@@ -55,8 +62,9 @@ class TraceSet:
         
 
         xbin = int(self.num_datapoints)
-        ybin = int(self.lvls.max()-self.lvls.min())*2
+        ybin = int((self.lvls.max()-self.lvls.min())/5)
         bins = (ybin,xbin)
+        print(self.lvls.max(), self.lvls.min(), bins)
         h, xe, ye = np.histogram2d(self.lvls.flatten(), self.offs.flatten(), bins=bins)
         
         #setup plot
@@ -66,17 +74,20 @@ class TraceSet:
                tools=['box_zoom', 'pan', 'reset', 'save'],
                x_range=self.xrange, 
                x_axis_type='linear',
-               y_range=self.yrange, 
+               y_range=self.yrange,
+               y_axis_type='linear',
                title=f'Freq Range:{round(self.start_frq/1000000, 3)} - {round(self.stop_frq/1000000, 3)}MHz, Time Period: {self.start_time} - {self.stop_time}, RBW: {round(self.step_frq/1000, 3)}kHz, Number of Traces: {self.num_traces}')
-        vmax = ((self.num_datapoints * self.num_traces) / 25000 )
-        color_mapper = EqHistColorMapper(palette='Turbo256', low=8, high=vmax)
+        #vmax = ((self.num_datapoints * self.num_traces) / 25000 )
+        vmax = (h.max())
+        print(vmax)
+        color_mapper = EqHistColorMapper(palette='Turbo256', low=0, high=vmax)
         p1.xaxis[0].formatter = BasicTickFormatter(use_scientific = False)
         p1.image(image=[h],
                 x=(self.x_min),
                 y=(self.y_min),
                 dw=[(self.x_max-self.x_min)],
-                dh=[(self.y_max-self.y_min)],
-                color_mapper=color_mapper)
+                dh=[(self.y_max)-(self.y_min)],
+                color_mapper=color_mapper, global_alpha=1.0)
         #p1.line(x[0:num_datapoints], maximum, line_width=4, level='overlay')
         p1.xaxis.axis_label = 'Frequency (MHz)'
         p1.yaxis.axis_label = 'Power (dBm)'
@@ -191,7 +202,7 @@ class TraceSet:
     def waterfall(self):
         tooltips=[ ("y", "$y{0.00}"), ]
         hover_tool = HoverTool(tooltips=[('freq', "$x{0.000}"), ('time', '$y{%H:%M:%S}'), ("power", "@image")], formatters={'$y': 'datetime'})
-        color_mapper = LinearColorMapper(palette="Turbo256", low=self.y_min, high=self.y_max)
+        color_mapper = LinearColorMapper(palette="Turbo256", low=self.lvls.min(), high=self.lvls.max())
         
         p2 = figure(plot_width=1250,
                     plot_height=300,
@@ -199,7 +210,7 @@ class TraceSet:
                     y_range=Range1d(self.z_min, self.z_max, bounds="auto"),
                     tools=('box_zoom', 'pan', 'xpan', 'ypan', 'reset', 'save'))
         p2.image(image=[self.lvls], color_mapper=color_mapper,
-                   dh=[(self.z_max-self.z_min)], dw=[(self.x_max-self.x_min)], x=[self.x_min], y=[self.z_min])
+                   dh=[(self.z_max-self.z_min)], dw=[(self.x_max-self.x_min)], x=[self.x_min], y=[self.z_min], global_alpha=0.75)
         p2.toolbar.logo = None
         #tools=('box_edit', 'box_select', 'box_zoom', 'pan', 'xpan', 'ypan', 'reset', 'save')
         p2.yaxis.formatter = DatetimeTickFormatter(seconds=["%H:%M:%S"],
@@ -221,6 +232,15 @@ class TraceSet:
             let intervals = source4.data['intervals']
             let time = source4.data['timestamp']
             
+            function convert(lvls) {
+            var nlvls = [];
+            for (let i = 0; i < lvls.length; i++) {
+              nlvls.push(lvls[i]/10 -107)
+            
+            }
+            return nlvls;
+            }
+            
             clearInterval(intervals[0]);
             
             for (let i = 0; i < timestamps.length; i++) {
@@ -237,7 +257,7 @@ class TraceSet:
             source4.data['timestamp'].push(timestamps[index+1])
             source4.data['last_timestamp'].shift()
             source4.data['last_timestamp'].push(timestamps[index])
-            source3.data['top'] = source[index];
+            source3.data['top'] = convert(source[index]);
             var date = new Date(Math.round(source4.data['timestamp']));
             var time_str = date.toUTCString();
             ti.text = time_str + ", Trace Number: " + index.toString()
@@ -264,6 +284,15 @@ class TraceSet:
         source4.change.emit();
         console.log(intervals)
         
+        function convert(lvls) {
+            var nlvls = [];
+            for (let i = 0; i < lvls.length; i++) {
+              nlvls.push(lvls[i]/10 -107)
+            
+            }
+            return nlvls;
+            }
+        
         function foo() {
             if (count >= source.length){
             clearInterval(interval)
@@ -275,7 +304,7 @@ class TraceSet:
             sw_idx.push(count);
             sw_timestamp.shift();
             sw_timestamp.push(source5[count]);
-            source2.data['top'] = source[count];
+            source2.data['top'] = convert(source[count]);
             var date = new Date(Math.round(sw_timestamp));
             var time_str = date.toUTCString();
             ti.text = time_str + ", Trace Number: " + count.toString()
@@ -462,5 +491,6 @@ class TraceSet:
         tab1 = Panel(child=tab1_layout, title="Spectrum Data")
         tab2 = Panel(child=tab2_layout, title="FOI Tool")
         tabs = Tabs(tabs=[ tab1, tab2 ])
-        file = save(tabs)
-        return file
+        output_file('plot.html', title='EME Analysis Tool', mode='inline')
+        page = save(tabs)
+        return page
