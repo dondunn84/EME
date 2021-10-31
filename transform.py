@@ -57,8 +57,8 @@ def mlog(file):
             lines.append("</RFLog>")
             line_string = ""
             for line in lines:
-                line_string = line_string + str(line)
-            line_string = ET.tostring(line_string, encoding='utf-8', method='xml')
+                line_string = line_string + line
+            
             xml_dict = xmltodict.parse(line_string)
             json_data = json.dumps(xml_dict)
             json_data = json.loads(json_data)
