@@ -59,7 +59,7 @@ def mlog(file):
         #f.truncate()
         lines.pop(3)
         lines.append("</RFLog>")
-        file = None
+        file.seek(0)
         file.writelines(lines)
         xml_dict = xmltodict.parse(file.read())
         json_data = json.dumps(xml_dict)
