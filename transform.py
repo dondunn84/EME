@@ -60,11 +60,8 @@ def mlog(file):
         lines.pop(3)
         lines.append("</RFLog>")
         file.seek(0)
-        new_lines = []
-        for x in lines:
-            x.encode('utf-8')
-            new_lines.append(x)
-        file.writelines(new_lines)
+        print(lines)
+        file.writelines(lines)
         xml_dict = xmltodict.parse(file.read())
         json_data = json.dumps(xml_dict)
         json_data = json.loads(json_data)
