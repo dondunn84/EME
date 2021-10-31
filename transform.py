@@ -52,21 +52,16 @@ def dons_app(df):
 
 def mlog(file):
     
-    with open(f"{file}", 'r+') as f:
-        # read an store all lines into list
-        lines = f.readlines()
+        lines = file.readlines()
         # move file pointer to the beginning of a file
         #f.seek(0)
         # truncate the file
         #f.truncate()
         lines.pop(3)
         lines.append("</RFLog>")
-        f.close()
-    with open('mlog.json', 'w+') as g:
-        g.writelines(lines)
-        g.close()
-    with open('mlog.json', 'r') as g:
-        xml_dict = xmltodict.parse(g.read())
+        file = None
+        file.writelines(lines)
+        xml_dict = xmltodict.parse(file.read())
         json_data = json.dumps(xml_dict)
         json_data = json.loads(json_data)
         df = pd.json_normalize(json_data, record_path =['RFLog', 'RFSample'])
