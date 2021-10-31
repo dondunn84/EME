@@ -4,6 +4,7 @@ from datetime import datetime
 import xmltodict
 import json
 import numpy as np
+import xml.etree.ElementTree as ET
 
 def string_to_timestamp(string):
     timestamp = datetime.strptime(string, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -57,6 +58,7 @@ def mlog(file):
             line_string = ""
             for line in lines:
                 line_string = line_string + str(line)
+            line_string = ET.tostring(line_string, encoding='utf-8', method='xml')
             xml_dict = xmltodict.parse(line_string)
             json_data = json.dumps(xml_dict)
             json_data = json.loads(json_data)
