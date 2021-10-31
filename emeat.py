@@ -40,3 +40,10 @@ elif file_type == "MANCAT MLog":
                      file_name="test.html",
                      mime="text/html"
              )
+with open(path+'/new.txt', "rb") as file:
+             btn = st.download_button(
+                     label="Download html",
+                     data=file,
+                     file_name="test.txt",
+                     mime="text/html"
+             )
